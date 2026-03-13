@@ -22,7 +22,7 @@ An `NSStatusItem` with a popover dropdown. Always accessible.
 - Idle: strawberry, no ring
 - Focus: strawberry inside a filling red/orange progress ring
 - Break: ring color shifts to green/teal
-- Timer ended: icon pulses until user interacts
+- Timer ended: icon pulses briefly, then settles into idle state (timer stops, does not auto-advance after cycle completion)
 - Active countdown text (e.g. `18:42`) shown next to the icon during sessions
 
 **Dropdown popover contents:**
@@ -51,8 +51,9 @@ Tabbed layout with three tabs:
   - **Classic:** 25 min focus / 5 min short break / 15 min long break / 4 cycles
   - **Deep Work:** 50 min focus / 10 min short break / 20 min long break / 3 cycles
   - **Short Sprint:** 15 min focus / 3 min short break / 10 min long break / 4 cycles
-- Custom preset creation: user sets focus duration, short break, long break, and cycle count
+- Custom preset creation: user sets focus duration, short break, long break, and cycle count (max 24 hours per duration, min 1 minute, cycle count 1–99)
 - Custom presets stored in UserDefaults
+- Edit/delete custom presets via contextual menu or swipe-to-delete
 
 #### Settings Tab
 - **Notifications section:** three independent toggles:
@@ -74,16 +75,16 @@ Tabbed layout with three tabs:
 
 ### Pomodoro Cycle Flow
 1. Focus → short break → focus → short break → ... → after Nth focus → long break
-2. Cycle resets after long break
-3. Auto-advances between phases (notification fires at each transition)
-4. User actions: pause, resume, skip to next phase, reset cycle
+2. After long break completes, timer stops and returns to idle (does not loop automatically)
+3. Auto-advances between phases within a cycle (notification fires at each transition)
+4. User actions: pause, resume, skip to next phase, reset cycle, start new cycle from idle
 
 ### Preset System
 - Preset model: focus duration, short break duration, long break duration, cycle count, name
 - 3 built-in presets (not editable, not deletable)
 - User-created custom presets (editable, deletable)
 - Quick-switchable from both menu bar dropdown and Presets tab
-- Switching presets resets the current cycle
+- Switching presets during an active session shows a confirmation dialog ("This will reset your current session. Continue?") before resetting
 
 ## Notifications
 
@@ -98,8 +99,9 @@ Three independent, toggleable channels:
 - **Color scheme:**
   - Focus: warm gradient (red `#ff6b6b` to orange `#ff8e53`)
   - Break: teal/green (`#4ecdc4`)
-  - Background: dark theme (`#1a1a2e` base)
-  - Follows system light/dark mode preference
+  - Dark theme: `#1a1a2e` base, light text
+  - Light theme: light background, dark text, same accent colors
+  - Appearance toggle in Settings: System (follows macOS), Light, or Dark
 - **Icon:** Strawberry, sized to fit neatly inside the menu bar progress ring
 - **Typography:** System font, lightweight for timer digits
 - **Animations:** Smooth ring fill/reset transitions, icon pulse on timer end

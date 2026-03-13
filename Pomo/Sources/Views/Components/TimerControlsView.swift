@@ -35,6 +35,13 @@ struct TimerControlsView: View {
                         .frame(maxWidth: compact ? nil : .infinity)
                 }
                 .buttonStyle(.bordered)
+
+                Button(action: { timerManager.resetCycle() }) {
+                    Label("Stop", systemImage: "stop.fill")
+                        .frame(maxWidth: compact ? nil : .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(.secondary)
             }
         }
     }

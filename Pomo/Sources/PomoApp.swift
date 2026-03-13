@@ -7,6 +7,7 @@ struct PomoApp: App {
     @StateObject private var settings = AppSettings()
     @StateObject private var timerManager: TimerManager
     @State private var notificationManager: NotificationManager?
+    @Environment(\.openWindow) private var openWindow
 
     init() {
         let store = PresetStore()
@@ -14,10 +15,29 @@ struct PomoApp: App {
         _timerManager = StateObject(wrappedValue: TimerManager(presetStore: store))
         // Show dock icon when running as a bare executable (no .app bundle)
         NSApplication.shared.setActivationPolicy(.regular)
+        // Set strawberry as dock icon
+        Self.setAppIcon()
+    }
+
+    private static func setAppIcon() {
+        let size = NSSize(width: 128, height: 128)
+        let image = NSImage(size: size, flipped: false) { rect in
+            let str = "\u{1F353}" as NSString
+            let font = NSFont.systemFont(ofSize: 100)
+            let attrs: [NSAttributedString.Key: Any] = [.font: font]
+            let strSize = str.size(withAttributes: attrs)
+            let point = NSPoint(
+                x: (rect.width - strSize.width) / 2,
+                y: (rect.height - strSize.height) / 2
+            )
+            str.draw(at: point, withAttributes: attrs)
+            return true
+        }
+        NSApplication.shared.applicationIconImage = image
     }
 
     var body: some Scene {
-        WindowGroup {
+        Window("Pomo", id: "main") {
             ContentView(timerManager: timerManager, presetStore: presetStore, settings: settings)
                 .onAppear {
                     setupNotifications()
@@ -58,10 +78,8 @@ struct PomoApp: App {
     }
 
     private func openMainWindow() {
+        openWindow(id: "main")
         NSApplication.shared.activate(ignoringOtherApps: true)
-        if let window = NSApplication.shared.windows.first(where: { $0.title != "" }) {
-            window.makeKeyAndOrderFront(nil)
-        }
     }
 }
 

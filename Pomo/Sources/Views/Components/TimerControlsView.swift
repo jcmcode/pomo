@@ -13,32 +13,33 @@ struct TimerControlsView: View {
             .buttonStyle(.borderedProminent)
             .tint(Color(hex: "ff6b6b"))
         } else {
-            HStack(spacing: compact ? 8 : 12) {
-                if timerManager.isRunning {
-                    Button(action: { timerManager.pause() }) {
-                        Label("Pause", systemImage: "pause.fill")
-                            .frame(maxWidth: compact ? nil : .infinity)
+            VStack(spacing: compact ? 6 : 8) {
+                HStack(spacing: compact ? 8 : 12) {
+                    if timerManager.isRunning {
+                        Button(action: { timerManager.pause() }) {
+                            Label("Pause", systemImage: "pause.fill")
+                                .frame(maxWidth: compact ? nil : .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color(hex: "ff6b6b"))
+                    } else {
+                        Button(action: { timerManager.resume() }) {
+                            Label("Resume", systemImage: "play.fill")
+                                .frame(maxWidth: compact ? nil : .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color(hex: "ff6b6b"))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color(hex: "ff6b6b"))
-                } else {
-                    Button(action: { timerManager.resume() }) {
-                        Label("Resume", systemImage: "play.fill")
-                            .frame(maxWidth: compact ? nil : .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color(hex: "ff6b6b"))
-                }
 
-                Button(action: { timerManager.skip() }) {
-                    Label("Skip", systemImage: "forward.fill")
-                        .frame(maxWidth: compact ? nil : .infinity)
+                    Button(action: { timerManager.skip() }) {
+                        Label("Skip", systemImage: "forward.fill")
+                            .frame(maxWidth: compact ? nil : .infinity)
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
 
                 Button(action: { timerManager.resetCycle() }) {
                     Label("Stop", systemImage: "stop.fill")
-                        .frame(maxWidth: compact ? nil : .infinity)
                 }
                 .buttonStyle(.bordered)
                 .tint(.secondary)

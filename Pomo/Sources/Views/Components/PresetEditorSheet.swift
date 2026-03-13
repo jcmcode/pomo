@@ -43,58 +43,96 @@ struct PresetEditorSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
+            // Header
             Text(existingPreset == nil ? "New Preset" : "Edit Preset")
                 .font(.headline)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
 
-            Form {
-                TextField("Name", text: $name)
+            // Content
+            VStack(spacing: 12) {
+                // Name field
+                HStack {
+                    Text("Name")
+                        .frame(width: 70, alignment: .leading)
+                    TextField("Preset name", text: $name)
+                        .textFieldStyle(.roundedBorder)
+                }
 
-                Toggle("Advanced", isOn: $isAdvanced.animation())
+                Divider()
+
+                if isAdvanced {
+                    advancedEditor
+                } else {
+                    simpleEditor
+                }
             }
+            .padding(.horizontal, 20)
 
-            if isAdvanced {
-                advancedEditor
-            } else {
-                simpleEditor
-            }
+            Spacer(minLength: 12)
 
+            // Footer
             HStack {
+                Button(action: {
+                    withAnimation { isAdvanced.toggle() }
+                }) {
+                    Text(isAdvanced ? "Simple" : "Advanced")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
                 Button("Cancel", action: onCancel)
                     .keyboardShortcut(.cancelAction)
-                Spacer()
+
                 Button("Save") { save() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!isValid)
             }
-            .padding(.horizontal)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
         }
-        .padding(.top)
-        .frame(width: 380, height: isAdvanced ? 460 : 300)
+        .frame(width: 340, height: isAdvanced ? 440 : 280)
     }
 
     // MARK: - Simple Editor
 
     private var simpleEditor: some View {
-        Form {
+        VStack(spacing: 10) {
             HStack {
-                Text("Focus (min)")
-                Spacer()
+                Text("Focus")
+                    .frame(width: 70, alignment: .leading)
                 TextField("", value: $focusMinutes, format: .number)
+                    .textFieldStyle(.roundedBorder)
                     .frame(width: 60)
-                    .multilineTextAlignment(.trailing)
+                Text("min")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                Spacer()
             }
 
             HStack {
-                Text("Break (min)")
-                Spacer()
+                Text("Break")
+                    .frame(width: 70, alignment: .leading)
                 TextField("", value: $breakMinutes, format: .number)
+                    .textFieldStyle(.roundedBorder)
                     .frame(width: 60)
-                    .multilineTextAlignment(.trailing)
+                Text("min")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                Spacer()
             }
 
-            Stepper("Sessions: \(sessionCount)", value: $sessionCount, in: 1...99)
+            HStack {
+                Text("Sessions")
+                    .frame(width: 70, alignment: .leading)
+                Stepper("\(sessionCount)", value: $sessionCount, in: 1...99)
+                    .frame(width: 100)
+                Spacer()
+            }
         }
     }
 
@@ -102,58 +140,63 @@ struct PresetEditorSheet: View {
 
     private var advancedEditor: some View {
         VStack(spacing: 8) {
-            List {
-                ForEach($blocks) { $block in
-                    HStack(spacing: 8) {
-                        Picker("", selection: $block.phase) {
-                            Text("Focus").tag(TimerPhase.focus)
-                            Text("Break").tag(TimerPhase.shortBreak)
+            ScrollView {
+                VStack(spacing: 6) {
+                    ForEach($blocks) { $block in
+                        HStack(spacing: 8) {
+                            Picker("", selection: $block.phase) {
+                                Text("Focus").tag(TimerPhase.focus)
+                                Text("Break").tag(TimerPhase.shortBreak)
+                            }
+                            .labelsHidden()
+                            .frame(width: 80)
+
+                            TextField("", value: Binding(
+                                get: { block.duration / 60 },
+                                set: { block.duration = $0 * 60 }
+                            ), format: .number)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 50)
+                            .multilineTextAlignment(.trailing)
+
+                            Text("min")
+                                .foregroundStyle(.secondary)
+                                .font(.caption)
+
+                            Spacer()
+
+                            Button(action: { blocks.removeAll { $0.id == block.id } }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 14))
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .labelsHidden()
-                        .frame(width: 80)
-
-                        TextField("min", value: Binding(
-                            get: { block.duration / 60 },
-                            set: { block.duration = $0 * 60 }
-                        ), format: .number)
-                        .frame(width: 50)
-                        .multilineTextAlignment(.trailing)
-
-                        Text("min")
-                            .foregroundStyle(.secondary)
-                            .font(.caption)
-
-                        Spacer()
-
-                        Button(action: { blocks.removeAll { $0.id == block.id } }) {
-                            Image(systemName: "minus.circle.fill")
-                                .foregroundStyle(.red)
-                        }
-                        .buttonStyle(.plain)
+                        .padding(.vertical, 2)
                     }
                 }
-                .onMove { from, to in
-                    blocks.move(fromOffsets: from, toOffset: to)
-                }
             }
-            .frame(minHeight: 150)
+            .frame(maxHeight: 200)
 
             HStack(spacing: 12) {
                 Button(action: {
                     blocks.append(TimerBlock(phase: .focus, duration: 25 * 60))
                 }) {
-                    Label("Focus", systemImage: "plus.circle.fill")
+                    Label("Focus", systemImage: "plus")
                         .font(.caption)
                 }
+                .buttonStyle(.bordered)
 
                 Button(action: {
                     blocks.append(TimerBlock(phase: .shortBreak, duration: 5 * 60))
                 }) {
-                    Label("Break", systemImage: "plus.circle.fill")
+                    Label("Break", systemImage: "plus")
                         .font(.caption)
                 }
+                .buttonStyle(.bordered)
+
+                Spacer()
             }
-            .padding(.horizontal)
         }
     }
 

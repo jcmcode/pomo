@@ -20,8 +20,8 @@ struct MenuBarPopover: View {
                 DoubleRingView(
                     timerProgress: timerManager.progress,
                     cycleProgress: timerManager.cycleProgress,
-                    completedPomodoros: timerManager.currentPomodoro - 1,
-                    totalPomodoros: timerManager.activePreset.cycleCount,
+                    completedPomodoros: timerManager.completedFocusSessions,
+                    totalPomodoros: timerManager.totalFocusSessions,
                     isBreak: timerManager.phase.isBreak,
                     size: 56
                 )
@@ -32,7 +32,7 @@ struct MenuBarPopover: View {
                         .monospacedDigit()
                     Text(timerManager.phase == .idle
                          ? "Ready"
-                         : "\(timerManager.phase.displayName) \u{00B7} \(timerManager.currentPomodoro) of \(timerManager.activePreset.cycleCount)")
+                         : "\(timerManager.phase.displayName) \u{00B7} \(timerManager.currentPomodoro) of \(timerManager.totalFocusSessions)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

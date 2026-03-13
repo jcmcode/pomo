@@ -16,9 +16,8 @@ import Testing
     let custom = Preset(
         name: "Custom",
         focusDuration: 45 * 60,
-        shortBreakDuration: 10 * 60,
-        longBreakDuration: 20 * 60,
-        cycleCount: 3,
+        breakDuration: 10 * 60,
+        sessionCount: 3,
         isBuiltIn: false
     )
     store.addPreset(custom)
@@ -32,9 +31,8 @@ import Testing
     let custom = Preset(
         name: "ToDelete",
         focusDuration: 600,
-        shortBreakDuration: 300,
-        longBreakDuration: 900,
-        cycleCount: 2,
+        breakDuration: 300,
+        sessionCount: 2,
         isBuiltIn: false
     )
     store.addPreset(custom)
@@ -57,9 +55,8 @@ import Testing
     var custom = Preset(
         name: "Original",
         focusDuration: 600,
-        shortBreakDuration: 300,
-        longBreakDuration: 900,
-        cycleCount: 2,
+        breakDuration: 300,
+        sessionCount: 2,
         isBuiltIn: false
     )
     store.addPreset(custom)
@@ -76,9 +73,8 @@ import Testing
     let custom = Preset(
         name: "Persisted",
         focusDuration: 600,
-        shortBreakDuration: 300,
-        longBreakDuration: 900,
-        cycleCount: 2,
+        breakDuration: 300,
+        sessionCount: 2,
         isBuiltIn: false
     )
     store1.addPreset(custom)

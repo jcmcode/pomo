@@ -45,15 +45,15 @@ final class NotificationManager {
         let content = UNMutableNotificationContent()
 
         switch newPhase {
-        case .shortBreak, .longBreak:
+        case .shortBreak:
             content.title = "Focus Complete!"
-            content.body = "Time for a \(newPhase == .longBreak ? "long " : "")break."
+            content.body = "Time for a break."
         case .focus:
             content.title = "Break Over!"
             content.body = "Time to focus."
         case .idle:
-            content.title = "Cycle Complete!"
-            content.body = "Great work! All pomodoros finished."
+            content.title = "Session Complete!"
+            content.body = "Great work! All sessions finished."
         }
 
         let request = UNNotificationRequest(

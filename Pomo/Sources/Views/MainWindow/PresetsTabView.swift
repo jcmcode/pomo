@@ -86,6 +86,18 @@ struct PresetRow: View {
     let onEdit: (() -> Void)?
     let onDelete: (() -> Void)?
 
+    private var presetSummary: String {
+        if preset.isAdvanced {
+            let blocks = preset.sequence
+            let focusCount = blocks.filter { $0.phase == .focus }.count
+            return "\(focusCount) blocks (advanced)"
+        }
+        if preset.breakDuration > 0 {
+            return "\(Int(preset.focusDuration / 60))m focus / \(Int(preset.breakDuration / 60))m break / \(preset.sessionCount) sessions"
+        }
+        return "\(Int(preset.focusDuration / 60))m focus / \(preset.sessionCount) sessions"
+    }
+
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -98,7 +110,7 @@ struct PresetRow: View {
                             .font(.caption)
                     }
                 }
-                Text("\(Int(preset.focusDuration / 60))m focus / \(Int(preset.shortBreakDuration / 60))m break / \(preset.cycleCount) cycles")
+                Text(presetSummary)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

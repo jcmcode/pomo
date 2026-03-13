@@ -5,8 +5,10 @@ import Combine
 final class TimerManager: ObservableObject {
     @Published var phase: TimerPhase = .idle
     @Published var timeRemaining: TimeInterval = 0
-    @Published var currentPomodoro: Int = 1
     @Published var isRunning: Bool = false
+
+    /// Index into the current preset's sequence
+    @Published var currentBlockIndex: Int = 0
 
     private var timer: AnyCancellable?
     private let presetStore: PresetStore
@@ -18,8 +20,17 @@ final class TimerManager: ObservableObject {
         presetStore.activePreset
     }
 
+    private var sequence: [TimerBlock] {
+        activePreset.sequence
+    }
+
+    var currentBlock: TimerBlock? {
+        guard currentBlockIndex < sequence.count else { return nil }
+        return sequence[currentBlockIndex]
+    }
+
     var totalDuration: TimeInterval {
-        activePreset.duration(for: phase)
+        currentBlock?.duration ?? 0
     }
 
     var progress: Double {
@@ -27,10 +38,24 @@ final class TimerManager: ObservableObject {
         return 1.0 - (timeRemaining / totalDuration)
     }
 
+    /// How many focus sessions completed so far
+    var completedFocusSessions: Int {
+        let pastBlocks = sequence.prefix(currentBlockIndex)
+        return pastBlocks.filter { $0.phase == .focus }.count
+    }
+
+    var totalFocusSessions: Int {
+        activePreset.totalFocusSessions
+    }
+
+    /// Current focus session number (1-based)
+    var currentPomodoro: Int {
+        completedFocusSessions + (phase == .focus ? 1 : 0)
+    }
+
     var cycleProgress: Double {
-        guard activePreset.cycleCount > 0 else { return 0 }
-        let completed = Double(currentPomodoro - 1)
-        return completed / Double(activePreset.cycleCount)
+        guard totalFocusSessions > 0 else { return 0 }
+        return Double(completedFocusSessions) / Double(totalFocusSessions)
     }
 
     init(presetStore: PresetStore) {
@@ -38,11 +63,8 @@ final class TimerManager: ObservableObject {
     }
 
     func start() {
-        phase = .focus
-        currentPomodoro = 1
-        timeRemaining = activePreset.duration(for: .focus)
-        isRunning = true
-        startTimer()
+        currentBlockIndex = 0
+        advanceToBlock(0)
     }
 
     func pause() {
@@ -56,45 +78,48 @@ final class TimerManager: ObservableObject {
     }
 
     func skip() {
-        let oldPhase = phase
-        let nextPhase = TimerPhase.nextPhase(
-            after: phase,
-            currentPomodoro: currentPomodoro,
-            totalPomodoros: activePreset.cycleCount
-        )
-
-        if oldPhase == .shortBreak {
-            currentPomodoro += 1
-        }
-
-        phase = nextPhase
-
-        if nextPhase == .idle {
-            timeRemaining = 0
-            isRunning = false
-            stopTimer()
-            onPhaseTransition?(oldPhase, nextPhase)
-        } else {
-            let duration = activePreset.duration(for: nextPhase)
-            if duration <= 0 {
-                // Skip zero-duration phases (e.g. no break configured)
-                onPhaseTransition?(oldPhase, nextPhase)
-                skip()
-                return
-            }
-            timeRemaining = duration
-            isRunning = true
-            startTimer()
-            onPhaseTransition?(oldPhase, nextPhase)
-        }
+        advanceToBlock(currentBlockIndex + 1)
     }
 
     func resetCycle() {
         stopTimer()
         phase = .idle
         timeRemaining = 0
-        currentPomodoro = 1
+        currentBlockIndex = 0
         isRunning = false
+    }
+
+    // MARK: - Block Navigation
+
+    private func advanceToBlock(_ index: Int) {
+        let oldPhase = phase
+
+        if index >= sequence.count {
+            // Sequence complete
+            phase = .idle
+            timeRemaining = 0
+            isRunning = false
+            currentBlockIndex = index
+            stopTimer()
+            onPhaseTransition?(oldPhase, .idle)
+            return
+        }
+
+        let block = sequence[index]
+        currentBlockIndex = index
+        phase = block.phase
+
+        if block.duration <= 0 {
+            // Skip zero-duration blocks
+            onPhaseTransition?(oldPhase, block.phase)
+            advanceToBlock(index + 1)
+            return
+        }
+
+        timeRemaining = block.duration
+        isRunning = true
+        startTimer()
+        onPhaseTransition?(oldPhase, block.phase)
     }
 
     // MARK: - Timer

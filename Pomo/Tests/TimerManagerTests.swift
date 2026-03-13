@@ -6,7 +6,7 @@ import Testing
     let manager = TimerManager(presetStore: store)
     #expect(manager.phase == .idle)
     #expect(manager.timeRemaining == 0)
-    #expect(manager.currentPomodoro == 1)
+    #expect(manager.currentPomodoro == 0)
     #expect(!manager.isRunning)
 }
 
@@ -17,6 +17,7 @@ import Testing
     #expect(manager.phase == .focus)
     #expect(manager.timeRemaining == 25 * 60)
     #expect(manager.isRunning)
+    #expect(manager.currentPomodoro == 1)
 }
 
 @Test @MainActor func pauseAndResume() {
@@ -35,38 +36,36 @@ import Testing
     let manager = TimerManager(presetStore: store)
     manager.start()
     #expect(manager.phase == .focus)
-    manager.skip()
+    manager.skip() // focus → break
     #expect(manager.phase == .shortBreak)
     #expect(manager.timeRemaining == 5 * 60)
     #expect(manager.isRunning)
 }
 
-@Test @MainActor func skipOnLastFocusGoesToLongBreak() {
+@Test @MainActor func skipThroughFullCycleEndsAtIdle() {
     let store = PresetStore(defaults: makeCleanDefaults(suiteName: "com.pomo.timer.tests5"))
     let manager = TimerManager(presetStore: store)
     manager.start()
-    for _ in 1..<4 {
-        manager.skip() // focus → short break
-        manager.skip() // short break → focus
+    // Classic: F B F B F B F = 7 blocks
+    for _ in 0..<7 {
+        manager.skip()
     }
-    #expect(manager.currentPomodoro == 4)
-    #expect(manager.phase == .focus)
-    manager.skip() // focus 4 → long break
-    #expect(manager.phase == .longBreak)
+    #expect(manager.phase == .idle)
+    #expect(!manager.isRunning)
 }
 
-@Test @MainActor func skipFromLongBreakGoesToIdle() {
+@Test @MainActor func lastFocusGoesDirectlyToIdle() {
     let store = PresetStore(defaults: makeCleanDefaults(suiteName: "com.pomo.timer.tests6"))
     let manager = TimerManager(presetStore: store)
     manager.start()
-    for _ in 1..<4 {
-        manager.skip()
+    // Skip to last focus (block index 6)
+    for _ in 0..<6 {
         manager.skip()
     }
-    manager.skip() // → long break
-    manager.skip() // → idle
+    #expect(manager.phase == .focus)
+    #expect(manager.currentPomodoro == 4)
+    manager.skip() // last focus → idle (no long break!)
     #expect(manager.phase == .idle)
-    #expect(!manager.isRunning)
 }
 
 @Test @MainActor func resetCycle() {
@@ -77,7 +76,6 @@ import Testing
     manager.skip()
     manager.resetCycle()
     #expect(manager.phase == .idle)
-    #expect(manager.currentPomodoro == 1)
     #expect(!manager.isRunning)
 }
 
@@ -98,7 +96,7 @@ import Testing
     manager.start()
     let initial = manager.cycleProgress
     #expect(initial >= 0.0 && initial <= 0.01)
-    manager.skip() // → short break
+    manager.skip() // → break
     manager.skip() // → focus (pomo 2)
     let afterOne = manager.cycleProgress
     #expect(afterOne >= 0.24 && afterOne <= 0.26)

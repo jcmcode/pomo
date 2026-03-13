@@ -13,18 +13,15 @@ struct TimerTabView: View {
         if timerManager.phase == .idle {
             return "Ready"
         }
-        return "\(timerManager.phase.displayName) \u{00B7} \(timerManager.currentPomodoro) of \(timerManager.activePreset.cycleCount)"
+        return "\(timerManager.phase.displayName) \u{00B7} \(timerManager.currentPomodoro) of \(timerManager.totalFocusSessions)"
     }
 
     private var nextPhaseLabel: String? {
         guard timerManager.phase != .idle else { return nil }
-        let next = TimerPhase.nextPhase(
-            after: timerManager.phase,
-            currentPomodoro: timerManager.currentPomodoro,
-            totalPomodoros: timerManager.activePreset.cycleCount
-        )
-        if next == .idle { return "Cycle Complete" }
-        return "Next: \(next.displayName)"
+        let seq = timerManager.activePreset.sequence
+        let nextIndex = timerManager.currentBlockIndex + 1
+        if nextIndex >= seq.count { return "Last Block" }
+        return "Next: \(seq[nextIndex].phase.displayName) (\(seq[nextIndex].displayDuration))"
     }
 
     var body: some View {
@@ -37,8 +34,8 @@ struct TimerTabView: View {
                 DoubleRingView(
                     timerProgress: timerManager.progress,
                     cycleProgress: timerManager.cycleProgress,
-                    completedPomodoros: timerManager.currentPomodoro - 1,
-                    totalPomodoros: timerManager.activePreset.cycleCount,
+                    completedPomodoros: timerManager.completedFocusSessions,
+                    totalPomodoros: timerManager.totalFocusSessions,
                     isBreak: timerManager.phase.isBreak,
                     size: 200
                 )
@@ -49,7 +46,7 @@ struct TimerTabView: View {
                         .monospacedDigit()
 
                     if timerManager.phase != .idle {
-                        Text("\(timerManager.currentPomodoro) of \(timerManager.activePreset.cycleCount)")
+                        Text("\(timerManager.currentPomodoro) of \(timerManager.totalFocusSessions)")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }

@@ -25,8 +25,8 @@ struct PresetEditorSheet: View {
     private var isValid: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty
             && focusMinutes >= 1 && focusMinutes <= 1440
-            && shortBreakMinutes >= 1 && shortBreakMinutes <= 1440
-            && longBreakMinutes >= 1 && longBreakMinutes <= 1440
+            && shortBreakMinutes >= 0 && shortBreakMinutes <= 1440
+            && longBreakMinutes >= 0 && longBreakMinutes <= 1440
             && cycleCount >= 1 && cycleCount <= 99
     }
 

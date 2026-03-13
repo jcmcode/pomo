@@ -73,13 +73,20 @@ final class TimerManager: ObservableObject {
             timeRemaining = 0
             isRunning = false
             stopTimer()
+            onPhaseTransition?(oldPhase, nextPhase)
         } else {
-            timeRemaining = activePreset.duration(for: nextPhase)
+            let duration = activePreset.duration(for: nextPhase)
+            if duration <= 0 {
+                // Skip zero-duration phases (e.g. no break configured)
+                onPhaseTransition?(oldPhase, nextPhase)
+                skip()
+                return
+            }
+            timeRemaining = duration
             isRunning = true
             startTimer()
+            onPhaseTransition?(oldPhase, nextPhase)
         }
-
-        onPhaseTransition?(oldPhase, nextPhase)
     }
 
     func resetCycle() {

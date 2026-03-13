@@ -20,10 +20,21 @@ struct PomoApp: App {
     }
 
     private static func setAppIcon() {
-        let size = NSSize(width: 128, height: 128)
+        let size = NSSize(width: 256, height: 256)
         let image = NSImage(size: size, flipped: false) { rect in
+            // Dark rounded rect background (matches .icns style)
+            let bgPath = NSBezierPath(roundedRect: rect.insetBy(dx: 8, dy: 8), xRadius: 48, yRadius: 48)
+            NSColor(red: 0.08, green: 0.08, blue: 0.16, alpha: 1.0).setFill()
+            bgPath.fill()
+
+            // Subtle border
+            NSColor(red: 0.2, green: 0.2, blue: 0.35, alpha: 0.6).setStroke()
+            bgPath.lineWidth = 2
+            bgPath.stroke()
+
+            // Strawberry emoji centered
             let str = "\u{1F353}" as NSString
-            let font = NSFont.systemFont(ofSize: 100)
+            let font = NSFont.systemFont(ofSize: 140)
             let attrs: [NSAttributedString.Key: Any] = [.font: font]
             let strSize = str.size(withAttributes: attrs)
             let point = NSPoint(

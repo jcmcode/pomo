@@ -12,6 +12,8 @@ struct PomoApp: App {
         let store = PresetStore()
         _presetStore = StateObject(wrappedValue: store)
         _timerManager = StateObject(wrappedValue: TimerManager(presetStore: store))
+        // Show dock icon when running as a bare executable (no .app bundle)
+        NSApplication.shared.setActivationPolicy(.regular)
     }
 
     var body: some Scene {

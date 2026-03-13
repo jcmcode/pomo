@@ -29,11 +29,19 @@ final class NotificationManager {
         }
     }
 
+    private var notificationCenter: UNUserNotificationCenter? {
+        // UNUserNotificationCenter crashes without a proper app bundle (e.g. SPM debug builds)
+        guard Bundle.main.bundleIdentifier != nil else { return nil }
+        return UNUserNotificationCenter.current()
+    }
+
     private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+        notificationCenter?.requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
     private nonisolated func sendSystemNotification(from oldPhase: TimerPhase, to newPhase: TimerPhase) {
+        guard Bundle.main.bundleIdentifier != nil else { return }
+
         let content = UNMutableNotificationContent()
 
         switch newPhase {

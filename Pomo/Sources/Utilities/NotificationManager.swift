@@ -7,13 +7,18 @@ final class NotificationManager {
     private let settings: AppSettings
     var onVisualNotification: (() -> Void)?
 
+    private var hasRequestedPermission = false
+
     init(settings: AppSettings) {
         self.settings = settings
-        requestNotificationPermission()
     }
 
     func handlePhaseTransition(from oldPhase: TimerPhase, to newPhase: TimerPhase) {
         if settings.systemNotificationsEnabled {
+            if !hasRequestedPermission {
+                hasRequestedPermission = true
+                requestNotificationPermission()
+            }
             sendSystemNotification(from: oldPhase, to: newPhase)
         }
         if settings.soundEnabled {
